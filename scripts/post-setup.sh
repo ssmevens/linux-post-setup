@@ -34,21 +34,22 @@ collect_system_info() {
     # Get current hostname
     HOSTNAME=$(hostname)
     
-    # Get CPU information using lscpu
-    # grep for model name and clean up the output
-    CPU_INFO=$(lscpu | grep "Model name" | cut -d':' -f2 | sed 's/^[ \t]*//')
+    # Get CPU information using lscpu with timeout
+    CPU_INFO=$(timeout 5 lscpu | grep "Model name" | cut -d':' -f2 | sed 's/^[ \t]*//' || echo "Unable to get CPU information")
     
-    # Get RAM information using free command
-    # Extract total memory in human-readable format
-    RAM_INFO=$(free -h | grep Mem | awk '{print $2}')
+    # Get RAM information using free command with timeout
+    RAM_INFO=$(timeout 5 free -h | grep Mem | awk '{print $2}' || echo "Unable to get RAM information")
     
-    # Get detailed hardware information using dmidecode
-    # Extract manufacturer, product name, and serial number
-    HARDWARE_INFO=$(dmidecode -t system | grep -E "Manufacturer|Product Name|Serial Number" | sed 's/^[ \t]*//')
+    # Get detailed hardware information using dmidecode with timeout
+    # Only run dmidecode if we have root privileges
+    if [ "$EUID" -eq 0 ]; then
+        HARDWARE_INFO=$(timeout 10 dmidecode -t system | grep -E "Manufacturer|Product Name|Serial Number" | sed 's/^[ \t]*//' || echo "Unable to get hardware information")
+    else
+        HARDWARE_INFO="Hardware information requires root privileges"
+    fi
     
-    # Get OS information using lsb_release
-    # Extract the distribution description
-    OS_INFO=$(lsb_release -d | cut -d':' -f2 | sed 's/^[ \t]*//')
+    # Get OS information using lsb_release with timeout
+    OS_INFO=$(timeout 5 lsb_release -d | cut -d':' -f2 | sed 's/^[ \t]*//' || echo "Unable to get OS information")
     
     # Combine all system information into a formatted string
     # This will be used in the HTML report
