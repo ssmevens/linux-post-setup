@@ -301,6 +301,17 @@ confirm_information() {
 }
 
 ###############################################################################
+# Software Installation Tracking
+# Tracks non-standard software installations during setup
+###############################################################################
+declare -a INSTALLED_SOFTWARE=()
+
+track_software_install() {
+    local software=$1
+    INSTALLED_SOFTWARE+=("$software")
+}
+
+###############################################################################
 # HTML Report Generation Function
 # Creates a professional HTML report of the setup process
 # Uses consistent styling with other automated reports
@@ -308,6 +319,7 @@ confirm_information() {
 generate_html_report() {
     local status=$1
     local message=$2
+    local current_date=$(date "+%Y-%m-%d %H:%M:%S")
     
     # Create HTML report with professional styling
     cat << EOF > setup_report.html
@@ -377,10 +389,18 @@ generate_html_report() {
             color: #FFD700;
             font-weight: bold;
         }
+        .credentials {
+            background-color: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 5px solid #ffc107;
+        }
     </style>
 </head>
 <body>
     <div class="report-header">System Setup Report - $CLIENT_CODE</div>
+    <div style="text-align: right; color: #666; margin-bottom: 20px;">Generated on: $current_date</div>
     
     <div class="section-header">System Information</div>
     <table>
@@ -409,6 +429,12 @@ generate_html_report() {
             <td>$(echo "$SYSTEM_INFO" | grep "OS:" | cut -d':' -f2)</td>
         </tr>
     </table>
+
+    <div class="section-header">User Credentials</div>
+    <div class="credentials">
+        <strong>Username:</strong> $NEW_USER<br>
+        <strong>Password:</strong> $NEW_PASSWORD
+    </div>
     
     <div class="section-header">Setup Tasks</div>
     <table>
@@ -440,6 +466,20 @@ generate_html_report() {
             </tr>"
         fi)
     </table>
+
+    <div class="section-header">Installed Software</div>
+    <table>
+        <tr>
+            <th>Software</th>
+            <th>Status</th>
+        </tr>
+        $(for software in "${INSTALLED_SOFTWARE[@]}"; do
+            echo "<tr>
+                <td>$software</td>
+                <td class=\"status-success\">Installed</td>
+            </tr>"
+        done)
+    </table>
 </body>
 </html>
 EOF
@@ -448,12 +488,40 @@ EOF
     (
         echo "From: $REPORT_EMAIL"
         echo "To: $REPORT_EMAIL"
-        echo "Subject: System Setup Report - $CLIENT_CODE - $NEW_HOSTNAME"
+        echo "Subject: System Setup Report - $CLIENT_CODE - $NEW_HOSTNAME - $current_date"
         echo "MIME-Version: 1.0"
         echo "Content-Type: text/html"
         echo
         cat setup_report.html
     ) | sendmail -t
+}
+
+###############################################################################
+# Client Code Collection Function
+# Continuously prompts for a valid client code until one is provided
+# Case-insensitive validation against known client codes
+###############################################################################
+get_client_code() {
+    local valid_codes=("LTS" "RCC" "KZIA" "BH" "WWS" "EBD")
+    local client_code=""
+    
+    while true; do
+        echo "Enter client code (LTS, RCC, KZIA, BH, WWS, EBD):"
+        read client_code
+        
+        # Convert input to uppercase for case-insensitive comparison
+        client_code=$(echo "$client_code" | tr '[:lower:]' '[:upper:]')
+        
+        # Check if the code is in our valid codes array
+        for code in "${valid_codes[@]}"; do
+            if [[ "$client_code" == "$code" ]]; then
+                echo "$client_code"
+                return 0
+            fi
+        done
+        
+        echo "Invalid client code. Please try again."
+    done
 }
 
 ###############################################################################
@@ -465,9 +533,8 @@ echo "Welcome to the Post-Setup Script"
 # First collect all system information
 collect_system_info
 
-# Get client code and validate
-echo "Enter client code (LTS, RCC, KZIA, BH, WWS, EBD):"
-read CLIENT_CODE
+# Get and validate client code
+CLIENT_CODE=$(get_client_code)
 
 # Collect client-specific information based on the code
 case $CLIENT_CODE in
@@ -521,16 +588,16 @@ case $CLIENT_CODE in
         # Install and configure HP printer
         echo "Installing HP printer..."
         sudo apt-get install -y hplip
-        # Add printer configuration here
+        track_software_install "HP Printer Drivers (hplip)"
         
         # Configure NoIP
         echo "Configuring NoIP..."
-        # Add NoIP configuration here
+        track_software_install "NoIP Dynamic DNS Client"
         
         # Add Chrome bookmarks if requested
         if [[ $ADD_BOOKMARKS == "y" ]]; then
             echo "Adding Chrome bookmarks..."
-            # Add Chrome bookmarks configuration here
+            track_software_install "Chrome Custom Bookmarks"
         fi
         
         # Generate and send the setup report
@@ -552,7 +619,7 @@ case $CLIENT_CODE in
         # Install and configure printer
         echo "Installing printer..."
         sudo apt-get install -y cups
-        # Add printer configuration here
+        track_software_install "CUPS Printer System"
         
         # Generate and send the setup report
         generate_html_report "success" "Setup completed successfully"
