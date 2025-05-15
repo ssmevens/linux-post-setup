@@ -1,0 +1,20 @@
+# System files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+setup_report.html
+
+# Sensitive information
+.env
+*.pem
+*.key 
