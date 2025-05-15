@@ -1,104 +1,91 @@
-# Linux Post-Setup Automation Script
+# Linux Post-Setup Script
 
-## Overview
-A high-performance, zero-bloat automation script engineered for rapid post-installation configuration. Built for speed and reliability, this script handles multiple client environments (LTS, RCC, KZIA, BH, WWS, EBD) with surgical precision.
+A comprehensive post-installation setup script for Linux systems, designed to automate the final configuration steps for various client environments.
 
-## Core Features
+## Features
 
-### User Management
-- Lightning-fast user creation with cryptographically secure password generation
-- Client-specific default usernames
-- Secure credential handling and reporting
-- Zero-touch user configuration
+- Client-specific setup paths (LTS, RCC, KZIA, BH, WWS, EBD)
+- Automated user creation with secure password generation
+- System information collection and reporting
+- Printer configuration
+- NoIP setup (for Linder systems)
+- Chrome bookmark management
+- HTML email reporting via SMTP2GO
 
-### System Configuration
-- Instant hostname configuration
-- Real-time hardware information collection
-- OS-specific performance optimizations
-- Automated printer setup with zero configuration
+## Directory Structure
 
-### Reporting Engine
-- High-performance HTML email reports
-- Real-time setup status tracking
-- Comprehensive system analytics
-- Dynamic software inventory
-- Secure credential reporting
-
-### Client-Specific Optimizations
-- **LTS (Linder) Systems**
-  - NoIP dynamic DNS configuration
-  - HP printer setup with zero-touch configuration
-  - Chrome bookmark management
-  - Linux Mint performance optimizations
-
-- **RCC/KZIA/BH/WWS/EBD Systems**
-  - High-performance printer configuration
-  - System optimization
-  - Client-specific defaults
-
-## Quick Start
-
-```bash
-# Make the script executable
-chmod +x post-setup.sh
-
-# Run the script
-./post-setup.sh
+```
+linux-post-setup/
+├── scripts/
+│   └── post-setup.sh    # Main setup script
+└── docs/
+    └── README.md        # This file
 ```
 
-The script executes a rapid-fire sequence:
-1. Client code validation
-2. System information collection
-3. Configuration deployment
-4. Installation process
-5. Report generation
+## Prerequisites
 
-## Report Analytics
-- Real-time system hardware metrics
-- Dynamic software inventory
-- Secure credential management
-- Setup task status tracking
-- Precise timestamp logging
-- Professional HTML formatting
+- Linux system (tested on Ubuntu, Linux Mint)
+- sudo privileges
+- sendmail installed
+- SMTP2GO account configured
 
-## Technical Architecture
-- Optimized Bash implementation
-- SMTP2GO integration
-- Cryptographically secure password generation
-- Dynamic software tracking
-- Case-insensitive client validation
+## Usage
 
-## System Requirements
-- Linux-based operating system
-- Root/sudo access
-- Internet connection
-- SMTP2GO account
+1. Clone this repository:
+   ```bash
+   git clone [repository-url]
+   cd linux-post-setup
+   ```
 
-## Security Architecture
-- OpenSSL-based password generation
-- Secure credential reporting
-- Encrypted data handling
-- Zero-touch security implementation
+2. Make the script executable:
+   ```bash
+   chmod +x scripts/post-setup.sh
+   ```
 
-## Customization Framework
-The script's modular architecture enables:
-- Dynamic client configuration
-- Custom default settings
-- Extended software tracking
-- Template customization
+3. Run the script with sudo:
+   ```bash
+   sudo ./scripts/post-setup.sh
+   ```
 
-## Roadmap
-- [ ] Web-based configuration interface
-- [ ] Extended client support
-- [ ] Advanced security features
-- [ ] Automated backup system
-- [ ] Remote management capabilities
+4. Follow the prompts to enter:
+   - Client code (LTS, RCC, KZIA, BH, WWS, EBD)
+   - Username
+   - Hostname
+   - Printer information
+   - Other client-specific details
+
+## Client-Specific Features
+
+### Linder (LTS)
+- HP printer configuration
+- NoIP setup
+- Chrome bookmark management
+- RDP manager removal (for Linux Mint LB systems)
+
+### RCC, KZIA, BH, WWS, EBD
+- Basic printer setup
+- User creation
+- Hostname configuration
+
+## Email Reporting
+
+The script generates and sends HTML reports via SMTP2GO. Reports include:
+- System information
+- Setup task status
+- Configuration details
 
 ## Contributing
-Submit issues and enhancement requests through our issue tracker.
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
 ## License
-This project is licensed under the MIT License - see the LICENSE file for details.
 
----
-Engineered for performance. Built for reliability. 
+[Your chosen license]
+
+## Author
+
+[Your name/organization] 

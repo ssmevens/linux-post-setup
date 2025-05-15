@@ -301,17 +301,6 @@ confirm_information() {
 }
 
 ###############################################################################
-# Software Installation Tracking
-# Tracks non-standard software installations during setup
-###############################################################################
-declare -a INSTALLED_SOFTWARE=()
-
-track_software_install() {
-    local software=$1
-    INSTALLED_SOFTWARE+=("$software")
-}
-
-###############################################################################
 # HTML Report Generation Function
 # Creates a professional HTML report of the setup process
 # Uses consistent styling with other automated reports
@@ -319,7 +308,6 @@ track_software_install() {
 generate_html_report() {
     local status=$1
     local message=$2
-    local current_date=$(date "+%Y-%m-%d %H:%M:%S")
     
     # Create HTML report with professional styling
     cat << EOF > setup_report.html
@@ -389,18 +377,10 @@ generate_html_report() {
             color: #FFD700;
             font-weight: bold;
         }
-        .credentials {
-            background-color: #fff3cd;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 10px 0;
-            border-left: 5px solid #ffc107;
-        }
     </style>
 </head>
 <body>
     <div class="report-header">System Setup Report - $CLIENT_CODE</div>
-    <div style="text-align: right; color: #666; margin-bottom: 20px;">Generated on: $current_date</div>
     
     <div class="section-header">System Information</div>
     <table>
@@ -429,12 +409,6 @@ generate_html_report() {
             <td>$(echo "$SYSTEM_INFO" | grep "OS:" | cut -d':' -f2)</td>
         </tr>
     </table>
-
-    <div class="section-header">User Credentials</div>
-    <div class="credentials">
-        <strong>Username:</strong> $NEW_USER<br>
-        <strong>Password:</strong> $NEW_PASSWORD
-    </div>
     
     <div class="section-header">Setup Tasks</div>
     <table>
@@ -466,20 +440,6 @@ generate_html_report() {
             </tr>"
         fi)
     </table>
-
-    <div class="section-header">Installed Software</div>
-    <table>
-        <tr>
-            <th>Software</th>
-            <th>Status</th>
-        </tr>
-        $(for software in "${INSTALLED_SOFTWARE[@]}"; do
-            echo "<tr>
-                <td>$software</td>
-                <td class=\"status-success\">Installed</td>
-            </tr>"
-        done)
-    </table>
 </body>
 </html>
 EOF
@@ -488,7 +448,7 @@ EOF
     (
         echo "From: $REPORT_EMAIL"
         echo "To: $REPORT_EMAIL"
-        echo "Subject: System Setup Report - $CLIENT_CODE - $NEW_HOSTNAME - $current_date"
+        echo "Subject: System Setup Report - $CLIENT_CODE - $NEW_HOSTNAME"
         echo "MIME-Version: 1.0"
         echo "Content-Type: text/html"
         echo
@@ -588,16 +548,16 @@ case $CLIENT_CODE in
         # Install and configure HP printer
         echo "Installing HP printer..."
         sudo apt-get install -y hplip
-        track_software_install "HP Printer Drivers (hplip)"
+        # Add printer configuration here
         
         # Configure NoIP
         echo "Configuring NoIP..."
-        track_software_install "NoIP Dynamic DNS Client"
+        # Add NoIP configuration here
         
         # Add Chrome bookmarks if requested
         if [[ $ADD_BOOKMARKS == "y" ]]; then
             echo "Adding Chrome bookmarks..."
-            track_software_install "Chrome Custom Bookmarks"
+            # Add Chrome bookmarks configuration here
         fi
         
         # Generate and send the setup report
@@ -619,7 +579,7 @@ case $CLIENT_CODE in
         # Install and configure printer
         echo "Installing printer..."
         sudo apt-get install -y cups
-        track_software_install "CUPS Printer System"
+        # Add printer configuration here
         
         # Generate and send the setup report
         generate_html_report "success" "Setup completed successfully"
