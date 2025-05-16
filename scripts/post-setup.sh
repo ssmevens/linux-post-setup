@@ -475,7 +475,7 @@ generate_html_report() {
         </tr>
         <tr>
             <td>Computer Type</td>
-            <td>$COMPUTER_TYPE</td>
+            <td>$(get_computer_type_name "$COMPUTER_TYPE")</td>
         </tr>
         <tr>
             <td>Hostname</td>
@@ -598,6 +598,27 @@ validate_client_code() {
     
     # Set the global variable directly instead of returning
     CLIENT_CODE="$input_code"
+}
+
+###############################################################################
+# Computer Type Name Conversion Function
+# Converts computer type codes to their full names
+###############################################################################
+get_computer_type_name() {
+    case "$1" in
+        "LT")
+            echo "LETC"
+            ;;
+        "LB")
+            echo "Linux Browser"
+            ;;
+        "LC")
+            echo "Linux Combo"
+            ;;
+        *)
+            echo "$1"
+            ;;
+    esac
 }
 
 ###############################################################################################################################################################################################
