@@ -32,12 +32,13 @@ generate_password() {
     # Capitalize first word
     word1=$(echo "$word1" | sed 's/^./\U&/')
 
-    # Add a random special character
+    # Add random special characters
     local special_chars="!@#$%^&*"
-    local special_char=$(echo "$special_chars" | fold -w1 | shuf | head -n1)
+    local special_char1=$(echo "$special_chars" | fold -w1 | shuf | head -n1)
+    local special_char2=$(echo "$special_chars" | fold -w1 | shuf | head -n1)
 
-    # Combine words with special character
-    echo "${word1}${special_char}${word2}${word3}"
+    # Combine words with special characters
+    echo "${word1}${special_char1}${word2}${special_char2}${word3}"
 }
 
 ###############################################################################
