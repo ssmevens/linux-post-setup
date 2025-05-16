@@ -468,7 +468,7 @@ validate_client_code() {
     echo "Starting client code validation..."
     local valid_codes=("LTS" "RCC" "KZIA" "BH" "WWS" "EBD")
     local input_code=""
-    local is_valid=false
+    local is_valid="false"
     
     while [ "$is_valid" = false ]; do
         echo "Enter client code (LTS, RCC, KZIA, BH, WWS, EBD):"
