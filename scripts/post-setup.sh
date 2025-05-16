@@ -44,7 +44,7 @@ collect_system_info() {
     
     # Get detailed hardware information using dmidecode
     # Extract manufacturer, product name, and serial number
-    HARDWARE_INFO=$(dmidecode -t system | grep -E "Manufacturer|Product Name|Serial Number" | sed 's/^[ \t]*//')
+    HARDWARE_INFO=$(sudo dmidecode -t system | awk -F: '/Manufacturer:|Product Name:|Serial Number:/ {gsub(/^[ \t]+/, "", $2); print $1 ": " $2}')
     
     # Get OS information using lsb_release
     # Extract the distribution description
