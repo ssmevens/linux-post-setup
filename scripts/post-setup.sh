@@ -465,21 +465,29 @@ EOF
 # Handles case-insensitive input and provides user feedback
 ###############################################################################
 validate_client_code() {
+    echo "Starting client code validation..."
     local valid_codes=("LTS" "RCC" "KZIA" "BH" "WWS" "EBD")
     local input_code=""
     local is_valid=false
     
     while [ "$is_valid" = false ]; do
         echo "Enter client code (LTS, RCC, KZIA, BH, WWS, EBD):"
-        read input_code
+        read -r input_code
+        
+        if [ -z "$input_code" ]; then
+            echo "No input provided. Please try again."
+            continue
+        fi
         
         # Convert input to uppercase for comparison
         input_code=$(echo "$input_code" | tr '[:lower:]' '[:upper:]')
+        echo "Checking code: $input_code"
         
         # Check if the code is in the valid codes array
         for code in "${valid_codes[@]}"; do
             if [ "$input_code" = "$code" ]; then
                 is_valid=true
+                echo "Valid code found: $input_code"
                 break
             fi
         done
@@ -504,7 +512,9 @@ collect_system_info
 echo "did we make it here?"
 
 # Get and validate client code
+echo "About to validate client code..."
 CLIENT_CODE=$(validate_client_code)
+echo "Client code validation complete. Code: $CLIENT_CODE"
 
 # Collect client-specific information based on the code
 case $CLIENT_CODE in
