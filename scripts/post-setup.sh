@@ -460,6 +460,40 @@ EOF
 }
 
 ###############################################################################
+# Client Code Validation Function
+# Validates the entered client code against allowed values
+# Handles case-insensitive input and provides user feedback
+###############################################################################
+validate_client_code() {
+    local valid_codes=("LTS" "RCC" "KZIA" "BH" "WWS" "EBD")
+    local input_code=""
+    local is_valid=false
+    
+    while [ "$is_valid" = false ]; do
+        echo "Enter client code (LTS, RCC, KZIA, BH, WWS, EBD):"
+        read input_code
+        
+        # Convert input to uppercase for comparison
+        input_code=$(echo "$input_code" | tr '[:lower:]' '[:upper:]')
+        
+        # Check if the code is in the valid codes array
+        for code in "${valid_codes[@]}"; do
+            if [ "$input_code" = "$code" ]; then
+                is_valid=true
+                break
+            fi
+        done
+        
+        if [ "$is_valid" = false ]; then
+            echo "Invalid client code. Please try again."
+        fi
+    done
+    
+    # Return the validated uppercase code
+    echo "$input_code"
+}
+
+###############################################################################
 # Main Script Execution
 # This is where the actual setup process begins
 ###############################################################################
@@ -468,9 +502,8 @@ echo "Welcome to the Post-Setup Script"
 # First collect all system information
 collect_system_info
 
-# Get client code and validate
-echo "Enter client code (LTS, RCC, KZIA, BH, WWS, EBD):"
-read CLIENT_CODE
+# Get and validate client code
+CLIENT_CODE=$(validate_client_code)
 
 # Collect client-specific information based on the code
 case $CLIENT_CODE in
