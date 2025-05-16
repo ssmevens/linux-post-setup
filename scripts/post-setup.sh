@@ -470,13 +470,10 @@ validate_client_code() {
     local input_code=""
     local is_valid=0
     
-    echo "DEBUG: Starting validation loop"
     while [ $is_valid -eq 0 ]; do
-        echo "DEBUG: Inside while loop"
         echo "Enter client code (LTS, RCC, KZIA, BH, WWS, EBD):"
         read -r input_code
         
-        echo "DEBUG: Read input: $input_code"
         if [ -z "$input_code" ]; then
             echo "No input provided. Please try again."
             continue
@@ -484,11 +481,9 @@ validate_client_code() {
         
         # Convert input to uppercase for comparison
         input_code=$(echo "$input_code" | tr '[:lower:]' '[:upper:]')
-        echo "DEBUG: Converted to uppercase: $input_code"
         
         # Check if the code is in the valid codes array
         for code in "${valid_codes[@]}"; do
-            echo "DEBUG: Comparing with: $code"
             if [ "$input_code" = "$code" ]; then
                 is_valid=1
                 echo "Valid code found: $input_code"
@@ -501,9 +496,8 @@ validate_client_code() {
         fi
     done
     
-    # Return the validated uppercase code
-    echo "DEBUG: Exiting validate_client_code with: $input_code"
-    echo "$input_code"
+    # Set the global variable directly instead of returning
+    CLIENT_CODE="$input_code"
 }
 
 ###############################################################################
@@ -519,7 +513,6 @@ echo "did we make it here?"
 # Get and validate client code
 echo "About to validate client code..."
 validate_client_code
-#CLIENT_CODE=$()
 echo "Client code validation complete. Code: $CLIENT_CODE"
 
 # Collect client-specific information based on the code
