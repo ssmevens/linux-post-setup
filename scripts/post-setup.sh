@@ -34,22 +34,21 @@ collect_system_info() {
     # Get current hostname
     HOSTNAME=$(hostname)
     
-    # Get CPU information using lscpu with timeout
-    CPU_INFO=$(timeout 5 lscpu | grep "Model name" | cut -d':' -f2 | sed 's/^[ \t]*//' || echo "Unable to get CPU information")
+    # Get CPU information using lscpu
+    # grep for model name and clean up the output
+    CPU_INFO=$(lscpu | grep "Model name" | cut -d':' -f2 | sed 's/^[ \t]*//')
     
-    # Get RAM information using free command with timeout
-    RAM_INFO=$(timeout 5 free -h | grep Mem | awk '{print $2}' || echo "Unable to get RAM information")
+    # Get RAM information using free command
+    # Extract total memory in human-readable format
+    RAM_INFO=$(free -h | grep Mem | awk '{print $2}')
     
-    # Get detailed hardware information using dmidecode with timeout
-    # Only run dmidecode if we have root privileges
-    if [ "$EUID" -eq 0 ]; then
-        HARDWARE_INFO=$(timeout 10 dmidecode -t system | grep -E "Manufacturer|Product Name|Serial Number" | sed 's/^[ \t]*//' || echo "Unable to get hardware information")
-    else
-        HARDWARE_INFO="Hardware information requires root privileges"
-    fi
+    # Get detailed hardware information using dmidecode
+    # Extract manufacturer, product name, and serial number
+    HARDWARE_INFO=$(dmidecode -t system | grep -E "Manufacturer|Product Name|Serial Number" | sed 's/^[ \t]*//')
     
-    # Get OS information using lsb_release with timeout
-    OS_INFO=$(timeout 5 lsb_release -d | cut -d':' -f2 | sed 's/^[ \t]*//' || echo "Unable to get OS information")
+    # Get OS information using lsb_release
+    # Extract the distribution description
+    OS_INFO=$(lsb_release -d | cut -d':' -f2 | sed 's/^[ \t]*//')
     
     # Combine all system information into a formatted string
     # This will be used in the HTML report
@@ -441,17 +440,10 @@ generate_html_report() {
             </tr>"
         fi)
     </table>
-    <div style='margin-bottom: 30px;'>
-        <h2 style='color: #005DAA; border-left: 4px solid #FFD700; padding-left: 10px;'>Service Start Errors:</h2>
-        <pre style='background-color: #f8f9fa; padding: 15px; border-left: 4px solid #FFD700; margin: 0;'>
-$(echo "$ERROR_MESSAGES")
-        </pre>
-    </div>
-
-    <div style='border-top: 3px solid #005DAA; padding-top: 20px; margin-top: 30px; font-size: 12px; color: #666;'>
-        Generated on $(date '+%Y-%m-%d %H:%M:%S')
-    </div>
 </body>
+    <div style='border-top: 3px solid #005DAA; padding-top: 20px; margin-top: 30px; font-size: 12px; color: #666;'>
+        Generated on $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+    </div>
 </html>
 EOF
 
@@ -468,34 +460,6 @@ EOF
 }
 
 ###############################################################################
-# Client Code Collection Function
-# Continuously prompts for a valid client code until one is provided
-# Case-insensitive validation against known client codes
-###############################################################################
-get_client_code() {
-    local valid_codes=("LTS" "RCC" "KZIA" "BH" "WWS" "EBD")
-    local client_code=""
-    
-    while true; do
-        echo "Enter client code (LTS, RCC, KZIA, BH, WWS, EBD):"
-        read client_code
-        
-        # Convert input to uppercase for case-insensitive comparison
-        client_code=$(echo "$client_code" | tr '[:lower:]' '[:upper:]')
-        
-        # Check if the code is in our valid codes array
-        for code in "${valid_codes[@]}"; do
-            if [[ "$client_code" == "$code" ]]; then
-                echo "$client_code"
-                return 0
-            fi
-        done
-        
-        echo "Invalid client code. Please try again."
-    done
-}
-
-###############################################################################
 # Main Script Execution
 # This is where the actual setup process begins
 ###############################################################################
@@ -504,8 +468,9 @@ echo "Welcome to the Post-Setup Script"
 # First collect all system information
 collect_system_info
 
-# Get and validate client code
-CLIENT_CODE=$(get_client_code)
+# Get client code and validate
+echo "Enter client code (LTS, RCC, KZIA, BH, WWS, EBD):"
+read CLIENT_CODE
 
 # Collect client-specific information based on the code
 case $CLIENT_CODE in
