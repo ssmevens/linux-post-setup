@@ -111,59 +111,6 @@ validate_computer_type() {
 }
 
 ###############################################################################
-# IP Address Validation Function
-# Validates IP address format and ensures it's a valid IP
-###############################################################################
-validate_ip() {
-    local ip=$1
-    local valid=0
-    
-    # Check if input is empty
-    if [ -z "$ip" ]; then
-        echo "IP address cannot be empty"
-        return 1
-    fi
-    
-    # Check IP format (x.x.x.x)
-    if ! [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-        echo "Invalid IP format. Must be x.x.x.x"
-        return 1
-    fi
-    
-    # Check each octet is between 0-255
-    IFS='.' read -r -a ip_parts <<< "$ip"
-    for part in "${ip_parts[@]}"; do
-        if [ "$part" -gt 255 ] || [ "$part" -lt 0 ]; then
-            echo "Invalid IP address. Each number must be between 0 and 255"
-            return 1
-        fi
-    done
-    
-    return 0
-}
-
-###############################################################################
-# Printer IP Collection Function
-# Collects and validates printer IP address
-###############################################################################
-collect_printer_ip() {
-    local ip=""
-    local is_valid=0
-    
-    while [ $is_valid -eq 0 ]; do
-        echo "Enter printer IP address:"
-        read -r ip
-        
-        if validate_ip "$ip"; then
-            is_valid=1
-            echo "$ip"
-        else
-            echo "Please try again."
-        fi
-    done
-}
-
-###############################################################################
 # NoIP Configuration Function
 # Downloads, installs, and configures NoIP DUC client
 ###############################################################################
@@ -273,7 +220,8 @@ collect_lts_input() {
     
     # Printer Information
     # Linder uses HP printers, so we need IP and model
-    PRINTER_IP=$(collect_printer_ip)
+    echo "Enter HP printer IP address:"
+    read PRINTER_IP
     echo "Enter HP printer model:"
     read PRINTER_MODEL
     
@@ -310,7 +258,8 @@ collect_rcc_input() {
     
     # Printer Information
     # Basic printer setup for RCC
-    PRINTER_IP=$(collect_printer_ip)
+    echo "Enter printer IP address:"
+    read PRINTER_IP
     echo "Enter printer model:"
     read PRINTER_MODEL
     
@@ -341,7 +290,8 @@ collect_kzia_input() {
     
     # Printer Information
     # Basic printer setup for KZIA
-    PRINTER_IP=$(collect_printer_ip)
+    echo "Enter printer IP address:"
+    read PRINTER_IP
     echo "Enter printer model:"
     read PRINTER_MODEL
     
@@ -372,7 +322,8 @@ collect_bh_input() {
     
     # Printer Information
     # Basic printer setup for BH
-    PRINTER_IP=$(collect_printer_ip)
+    echo "Enter printer IP address:"
+    read PRINTER_IP
     echo "Enter printer model:"
     read PRINTER_MODEL
     
@@ -403,7 +354,8 @@ collect_wws_input() {
     
     # Printer Information
     # Basic printer setup for WWS
-    PRINTER_IP=$(collect_printer_ip)
+    echo "Enter printer IP address:"
+    read PRINTER_IP
     echo "Enter printer model:"
     read PRINTER_MODEL
     
@@ -434,7 +386,8 @@ collect_ebd_input() {
     
     # Printer Information
     # Basic printer setup for EBD
-    PRINTER_IP=$(collect_printer_ip)
+    echo "Enter printer IP address:"
+    read PRINTER_IP
     echo "Enter printer model:"
     read PRINTER_MODEL
     
