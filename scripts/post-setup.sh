@@ -52,9 +52,68 @@ collect_system_info() {
 }
 
 ###############################################################################
+# Computer Type Validation Function
+# Validates the entered computer type against allowed values
+# Handles case-insensitive input and provides user feedback
+###############################################################################
+validate_computer_type() {
+    echo "DEBUG: Entering validate_computer_type function"
+    local valid_types=("LT" "LB" "LC")
+    local input_type=""
+    local is_valid=0
+    
+    while [ $is_valid -eq 0 ]; do
+        echo "Enter computer type (LT, LB, LC):"
+        read -r input_type
+        
+        if [ -z "$input_type" ]; then
+            echo "No input provided. Please try again."
+            continue
+        fi
+        
+        # Convert input to uppercase for comparison
+        input_type=$(echo "$input_type" | tr '[:lower:]' '[:upper:]')
+        
+        # Check if the type is in the valid types array
+        for type in "${valid_types[@]}"; do
+            if [ "$input_type" = "$type" ]; then
+                is_valid=1
+                echo "Valid type found: $input_type"
+                break
+            fi
+        done
+        
+        if [ $is_valid -eq 0 ]; then
+            echo "Invalid computer type. Please try again."
+        fi
+    done
+    
+    # Set the global variable
+    COMPUTER_TYPE="$input_type"
+}
+
+###############################################################################
+# NoIP Configuration Function
+# Collects and configures NoIP information for LT and LC computers
+###############################################################################
+configure_noip() {
+    echo "=== NoIP Configuration ==="
+    echo "Enter NoIP username:"
+    read NOIP_USERNAME
+    echo "Enter NoIP password:"
+    read -s NOIP_PASSWORD
+    echo
+    
+    # Create NoIP configuration file
+    echo "USERNAME=$NOIP_USERNAME" | sudo tee /etc/default/noip-duc
+    echo "PASSWORD=$NOIP_PASSWORD" | sudo tee -a /etc/default/noip-duc
+    echo "HOSTNAME=all.ddnskey.com" | sudo tee -a /etc/default/noip-duc
+}
+
+###############################################################################
 # Linder (LTS) Specific Information Collection
 # Gathers all necessary information for setting up a Linder system
-# Includes special requirements like NoIP and HP printer setup
+# Includes special requirements like HP printer setup
 ###############################################################################
 collect_lts_input() {
     echo "=== Linder System Setup Information Collection ==="
@@ -79,14 +138,6 @@ collect_lts_input() {
     read PRINTER_IP
     echo "Enter HP printer model:"
     read PRINTER_MODEL
-    
-    # NoIP Information
-    # Required for Linder systems for remote access
-    echo "Enter NoIP username:"
-    read NOIP_USERNAME
-    echo "Enter NoIP password:"
-    read -s NOIP_PASSWORD
-    echo
     
     # Chrome Bookmarks
     # Optional: Add default bookmarks for Linder
@@ -503,6 +554,11 @@ echo "Welcome to the Post-Setup Script"
 # First collect all system information
 collect_system_info
 
+# Get and validate computer type
+echo "About to validate computer type..."
+validate_computer_type
+echo "Computer type validation complete. Type: $COMPUTER_TYPE"
+
 # Get and validate client code
 echo "About to validate client code..."
 validate_client_code
@@ -551,23 +607,21 @@ case $CLIENT_CODE in
         echo "Setting hostname..."
         sudo hostnamectl set-hostname "$NEW_HOSTNAME"
         
-        # Special handling for Linux Mint machines with LB in hostname
-        if [[ $OS_INFO == *"Linux Mint"* ]] && [[ $NEW_HOSTNAME == *"LB"* ]]; then
-            echo "Removing rdp_manager app..."
+        # Special handling for LB computers
+        if [ "$COMPUTER_TYPE" = "LB" ]; then
+            echo "Removing rdp_manager..."
             sudo apt-get remove -y rdp_manager
+        fi
+        
+        # Configure NoIP for LT and LC computers
+        if [ "$COMPUTER_TYPE" = "LT" ] || [ "$COMPUTER_TYPE" = "LC" ]; then
+            configure_noip
         fi
         
         # Install and configure HP printer
         echo "Installing HP printer..."
         sudo apt-get install -y hplip
         # Add printer configuration here
-        
-        # Configure NoIP
-        echo "Configuring NoIP..."
-        # Create NoIP configuration file
-        echo "USERNAME=$NOIP_USERNAME" | sudo tee /etc/default/noip-duc
-        echo "PASSWORD=$NOIP_PASSWORD" | sudo tee -a /etc/default/noip-duc
-        echo "HOSTNAME=all.ddnskey.com" | sudo tee -a /etc/default/noip-duc
         
         # Add Chrome bookmarks if requested
         if [[ $ADD_BOOKMARKS == "y" ]]; then
