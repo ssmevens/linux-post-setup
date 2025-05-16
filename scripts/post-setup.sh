@@ -441,6 +441,16 @@ generate_html_report() {
             </tr>"
         fi)
     </table>
+    <div style='margin-bottom: 30px;'>
+        <h2 style='color: #005DAA; border-left: 4px solid #FFD700; padding-left: 10px;'>Service Start Errors:</h2>
+        <pre style='background-color: #f8f9fa; padding: 15px; border-left: 4px solid #FFD700; margin: 0;'>
+$(echo "$ERROR_MESSAGES")
+        </pre>
+    </div>
+
+    <div style='border-top: 3px solid #005DAA; padding-top: 20px; margin-top: 30px; font-size: 12px; color: #666;'>
+        Generated on $(date '+%Y-%m-%d %H:%M:%S')
+    </div>
 </body>
 </html>
 EOF
