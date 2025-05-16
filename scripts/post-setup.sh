@@ -5,7 +5,8 @@
 # These settings are used for sending status reports via SMTP2GO
 # DO NOT MODIFY THESE VALUES WITHOUT UPDATING THE SMTP2GO CONFIGURATION
 ###############################################################################
-REPORT_EMAIL="Service-Monitor@its-ia.com"    # The email address that will send and receive reports
+REPORT_EMAIL="NewLinuxInstall@its-ia.com"    # The email address that will send reports
+RECIPIENT_EMAIL="Ssaunders@its-ia.com"  # The email address that will receive reports
 SMTP2GO_SERVER="mail.smtp2go.com"           # SMTP2GO's mail server address
 SMTP2GO_PORT="2525"                         # SMTP2GO's mail server port
 SMTP2GO_USERNAME="SRVLinux"                 # SMTP2GO account username
@@ -524,16 +525,21 @@ generate_html_report() {
 </html>
 EOF
 
-    # Send the report via email using sendmail
-    (
-        echo "From: $REPORT_EMAIL"
-        echo "To: $REPORT_EMAIL"
-        echo "Subject: System Setup Report - $CLIENT_CODE - $NEW_HOSTNAME"
-        echo "MIME-Version: 1.0"
-        echo "Content-Type: text/html"
-        echo
-        cat setup_report.html
-    ) | sendmail -t
+    # Send the report via email using sendemail
+    if ! command -v sendemail &> /dev/null; then
+        echo "Installing sendemail..."
+        sudo apt-get install -y sendemail
+    fi
+
+    sendemail -f "$REPORT_EMAIL" \
+              -t "$RECIPIENT_EMAIL" \
+              -u "System Setup Report - $CLIENT_CODE - $NEW_HOSTNAME" \
+              -s "$SMTP2GO_SERVER:$SMTP2GO_PORT" \
+              -xu "$SMTP2GO_USERNAME" \
+              -xp "$SMTP2GO_PASSWORD" \
+              -o tls=yes \
+              -o message-content-type=html \
+              -o message-file=setup_report.html
 }
 
 ###############################################################################
