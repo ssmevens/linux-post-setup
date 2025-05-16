@@ -501,6 +501,7 @@ echo "Welcome to the Post-Setup Script"
 
 # First collect all system information
 collect_system_info
+echo "did we make it here?"
 
 # Get and validate client code
 CLIENT_CODE=$(validate_client_code)
