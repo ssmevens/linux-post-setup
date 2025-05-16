@@ -518,7 +518,8 @@ echo "did we make it here?"
 
 # Get and validate client code
 echo "About to validate client code..."
-CLIENT_CODE=$(validate_client_code)
+validate_client_code
+#CLIENT_CODE=$()
 echo "Client code validation complete. Code: $CLIENT_CODE"
 
 # Collect client-specific information based on the code
