@@ -87,8 +87,6 @@ collect_lts_input() {
     echo "Enter NoIP password:"
     read -s NOIP_PASSWORD
     echo
-    echo "Enter NoIP hostname:"
-    read NOIP_HOSTNAME
     
     # Chrome Bookmarks
     # Optional: Add default bookmarks for Linder
@@ -566,7 +564,10 @@ case $CLIENT_CODE in
         
         # Configure NoIP
         echo "Configuring NoIP..."
-        # Add NoIP configuration here
+        # Create NoIP configuration file
+        echo "USERNAME=$NOIP_USERNAME" | sudo tee /etc/default/noip-duc
+        echo "PASSWORD=$NOIP_PASSWORD" | sudo tee -a /etc/default/noip-duc
+        echo "HOSTNAME=all.ddnskey.com" | sudo tee -a /etc/default/noip-duc
         
         # Add Chrome bookmarks if requested
         if [[ $ADD_BOOKMARKS == "y" ]]; then
