@@ -709,10 +709,10 @@ case $CLIENT_CODE in
             configure_noip
             if [ -f "/etc/default/noip-duc" ] && grep -q "USERNAME=$NOIP_USERNAME" "/etc/default/noip-duc"; then
                 NOIP_STATUS="success"
-                NOIP_MESSAGE="NoIP configured successfully for hostname: all.ddnskey.com"
+                NOIP_MESSAGE="NoIP configured successfully for username: $NOIP_USERNAME, hostname: all.ddnskey.com"
             else
                 NOIP_STATUS="failed"
-                NOIP_MESSAGE="Failed to configure NoIP"
+                NOIP_MESSAGE="Failed to configure NoIP for username: $NOIP_USERNAME"
             fi
         fi
         
