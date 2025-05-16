@@ -49,10 +49,6 @@ collect_system_info() {
     # Get OS information using lsb_release
     # Extract the distribution description
     OS_INFO=$(lsb_release -d | cut -d':' -f2 | sed 's/^[ \t]*//')
-    
-    # Combine all system information into a formatted string
-    # This will be used in the HTML report
-    SYSTEM_INFO="Hostname: $HOSTNAME\nCPU: $CPU_INFO\nRAM: $RAM_INFO\nHardware: $HARDWARE_INFO\nOS: $OS_INFO"
 }
 
 ###############################################################################
@@ -390,23 +386,23 @@ generate_html_report() {
         </tr>
         <tr>
             <td>Hostname</td>
-            <td>$(echo "$SYSTEM_INFO" | grep "Hostname:" | cut -d':' -f2)</td>
+            <td>$HOSTNAME</td>
         </tr>
         <tr>
             <td>CPU</td>
-            <td>$(echo "$SYSTEM_INFO" | grep "CPU:" | cut -d':' -f2)</td>
+            <td>$CPU_INFO</td>
         </tr>
         <tr>
             <td>RAM</td>
-            <td>$(echo "$SYSTEM_INFO" | grep "RAM:" | cut -d':' -f2)</td>
+            <td>$RAM_INFO</td>
         </tr>
         <tr>
             <td>Hardware</td>
-            <td>$(echo "$SYSTEM_INFO" | grep "Hardware:" | cut -d':' -f2)</td>
+            <td>$HARDWARE_INFO</td>
         </tr>
         <tr>
             <td>OS</td>
-            <td>$(echo "$SYSTEM_INFO" | grep "OS:" | cut -d':' -f2)</td>
+            <td>$OS_INFO</td>
         </tr>
     </table>
     
