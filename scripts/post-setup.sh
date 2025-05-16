@@ -125,28 +125,33 @@ configure_noip() {
     # Download the latest NoIP DUC
     echo "Downloading NoIP DUC..."
     if ! wget --content-disposition https://www.noip.com/download/linux/latest; then
-        NOIP_STATUS="failed"
-        NOIP_MESSAGE="Failed to download NoIP DUC"
+        NOIP_INSTALL_STATUS="failed"
+        NOIP_INSTALL_MESSAGE="Failed to download NoIP DUC"
         return 1
     fi
     
     # Extract the downloaded file
     echo "Extracting NoIP DUC..."
     if ! tar xf noip-duc_*.tar.gz; then
-        NOIP_STATUS="failed"
-        NOIP_MESSAGE="Failed to extract NoIP DUC"
+        NOIP_INSTALL_STATUS="failed"
+        NOIP_INSTALL_MESSAGE="Failed to extract NoIP DUC"
         return 1
     fi
     
     # Install the package
     echo "Installing NoIP DUC..."
     cd noip-duc_*/binaries
+    # Fix permissions for the .deb file
+    sudo chown root:root noip-duc_*_amd64.deb
+    sudo chmod 644 noip-duc_*_amd64.deb
     if ! sudo apt install -y ./noip-duc_*_amd64.deb; then
-        NOIP_STATUS="failed"
-        NOIP_MESSAGE="Failed to install NoIP DUC package"
+        NOIP_INSTALL_STATUS="failed"
+        NOIP_INSTALL_MESSAGE="Failed to install NoIP DUC package"
         cd - > /dev/null
         return 1
     fi
+    NOIP_INSTALL_STATUS="success"
+    NOIP_INSTALL_MESSAGE="NoIP DUC package installed successfully"
     cd - > /dev/null
     
     # Create NoIP configuration file
@@ -154,12 +159,22 @@ configure_noip() {
     echo "PASSWORD=$NOIP_PASSWORD" | sudo tee -a /etc/default/noip-duc
     echo "HOSTNAME=all.ddnskey.com" | sudo tee -a /etc/default/noip-duc
     
+    # Verify configuration file
+    if [ -f "/etc/default/noip-duc" ] && grep -q "USERNAME=$NOIP_USERNAME" "/etc/default/noip-duc"; then
+        NOIP_CONFIG_STATUS="success"
+        NOIP_CONFIG_MESSAGE="NoIP configuration file created successfully"
+    else
+        NOIP_CONFIG_STATUS="failed"
+        NOIP_CONFIG_MESSAGE="Failed to create NoIP configuration file"
+        return 1
+    fi
+    
     # Start NoIP DUC service
     echo "Starting NoIP DUC service..."
     if ! sudo systemctl start noip-duc; then
-        NOIP_STATUS="failed"
-        NOIP_MESSAGE="Failed to start NoIP DUC service"
-        NOIP_SERVICE_STATUS=$(systemctl status noip-duc | cat)
+        NOIP_SERVICE_STATUS="failed"
+        NOIP_SERVICE_MESSAGE="Failed to start NoIP DUC service"
+        NOIP_SERVICE_OUTPUT=$(systemctl status noip-duc | cat)
         return 1
     fi
     
@@ -170,20 +185,14 @@ configure_noip() {
     sleep 5
     
     # Check service status and verify it's running
-    NOIP_SERVICE_STATUS=$(systemctl status noip-duc | cat)
-    if ! systemctl is-active --quiet noip-duc; then
-        NOIP_STATUS="failed"
-        NOIP_MESSAGE="NoIP DUC service is not running properly"
-        return 1
-    fi
-    
-    # Verify installation and configuration
-    if [ -f "/etc/default/noip-duc" ] && grep -q "USERNAME=$NOIP_USERNAME" "/etc/default/noip-duc"; then
-        NOIP_STATUS="success"
-        NOIP_MESSAGE="NoIP configured successfully for username: $NOIP_USERNAME, hostname: all.ddnskey.com"
+    NOIP_SERVICE_OUTPUT=$(systemctl status noip-duc | cat)
+    if systemctl is-active --quiet noip-duc; then
+        NOIP_SERVICE_STATUS="success"
+        NOIP_SERVICE_MESSAGE="NoIP DUC service is running"
     else
-        NOIP_STATUS="failed"
-        NOIP_MESSAGE="Failed to configure NoIP for username: $NOIP_USERNAME"
+        NOIP_SERVICE_STATUS="failed"
+        NOIP_SERVICE_MESSAGE="NoIP DUC service is not running properly"
+        return 1
     fi
 }
 
@@ -432,8 +441,13 @@ HOSTNAME_STATUS="failed"
 HOSTNAME_MESSAGE=""
 PRINTER_STATUS="failed"
 PRINTER_MESSAGE=""
-NOIP_STATUS="failed"
-NOIP_MESSAGE=""
+NOIP_INSTALL_STATUS="failed"
+NOIP_INSTALL_MESSAGE=""
+NOIP_CONFIG_STATUS="failed"
+NOIP_CONFIG_MESSAGE=""
+NOIP_SERVICE_STATUS="failed"
+NOIP_SERVICE_MESSAGE=""
+NOIP_SERVICE_OUTPUT=""
 
 ###############################################################################
 # HTML Report Generation Function
@@ -589,13 +603,23 @@ generate_html_report() {
         </tr>
         $(if [[ -n "$NOIP_USERNAME" ]]; then
             echo "<tr>
+                <td>NoIP Installation</td>
+                <td class=\"status-$NOIP_INSTALL_STATUS\">$NOIP_INSTALL_STATUS</td>
+                <td>$NOIP_INSTALL_MESSAGE</td>
+            </tr>
+            <tr>
                 <td>NoIP Configuration</td>
-                <td class=\"status-$NOIP_STATUS\">$NOIP_STATUS</td>
+                <td class=\"status-$NOIP_CONFIG_STATUS\">$NOIP_CONFIG_STATUS</td>
+                <td>$NOIP_CONFIG_MESSAGE</td>
+            </tr>
+            <tr>
+                <td>NoIP Service</td>
+                <td class=\"status-$NOIP_SERVICE_STATUS\">$NOIP_SERVICE_STATUS</td>
                 <td>
-                    $NOIP_MESSAGE
+                    $NOIP_SERVICE_MESSAGE
                     <br><br>
                     <strong>Service Status:</strong>
-                    <pre style=\"background-color: #f8f9fa; padding: 10px; border-radius: 5px; font-size: 12px; white-space: pre-wrap;\">$NOIP_SERVICE_STATUS</pre>
+                    <pre style=\"background-color: #f8f9fa; padding: 10px; border-radius: 5px; font-size: 12px; white-space: pre-wrap;\">$(echo "$NOIP_SERVICE_OUTPUT" | sed 's/active (running)/<span style=\"color: green;\">active (running)<\/span>/g; s/failed/<span style=\"color: red;\">failed<\/span>/g; s/inactive/<span style=\"color: red;\">inactive<\/span>/g; s/dead/<span style=\"color: red;\">dead<\/span>/g')</pre>
                 </td>
             </tr>"
         fi)
