@@ -533,7 +533,7 @@ esac
 
 # Confirm all collected information before proceeding
 confirm_information
-
+echo "did we make it here?"
 # Execute the appropriate setup based on client code
 case $CLIENT_CODE in
     "LTS")
