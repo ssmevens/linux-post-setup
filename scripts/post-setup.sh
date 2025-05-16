@@ -462,26 +462,37 @@ EOF
 ###############################################################################
 # Client Code Validation Function
 # Reads and validates the client code input
-# Keeps looping until a valid code is provided
+# Handles case-insensitive input and provides clear error messages
 ###############################################################################
 read_client_code() {
     local valid_codes=("LTS" "RCC" "KZIA" "BH" "WWS" "EBD")
     local code=""
-    
-    while true; do
+    local max_attempts=3
+    local attempts=0
+
+    while [ $attempts -lt $max_attempts ]; do
         echo "Enter client code (LTS, RCC, KZIA, BH, WWS, EBD):"
         read code
         
-        # Convert input to uppercase for case-insensitive comparison
+        # Convert input to uppercase for comparison
         code=$(echo "$code" | tr '[:lower:]' '[:upper:]')
         
-        # Check if the code is in the list of valid codes
-        if [[ " ${valid_codes[@]} " =~ " ${code} " ]]; then
-            echo "Valid client code: $code"
-            return 0
+        # Check if the code is in the valid codes array
+        for valid_code in "${valid_codes[@]}"; do
+            if [ "$code" = "$valid_code" ]; then
+                echo "$code"
+                return 0
+            fi
+        done
+        
+        attempts=$((attempts + 1))
+        remaining=$((max_attempts - attempts))
+        
+        if [ $remaining -gt 0 ]; then
+            echo "Invalid client code. Please try again. ($remaining attempts remaining)"
         else
-            echo "Invalid client code. Please try again."
-            echo "Valid codes are: ${valid_codes[*]}"
+            echo "Maximum attempts reached. Exiting."
+            exit 1
         fi
     done
 }
@@ -496,8 +507,7 @@ echo "Welcome to the Post-Setup Script"
 collect_system_info
 
 # Get and validate client code
-read_client_code
-CLIENT_CODE=$code
+CLIENT_CODE=$(read_client_code)
 
 # Collect client-specific information based on the code
 case $CLIENT_CODE in
@@ -518,10 +528,6 @@ case $CLIENT_CODE in
         ;;
     "EBD")
         collect_ebd_input
-        ;;
-    *)
-        echo "Invalid client code"
-        exit 1
         ;;
 esac
 
