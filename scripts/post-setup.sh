@@ -442,7 +442,7 @@ generate_html_report() {
     </table>
 </body>
     <div style='border-top: 3px solid #005DAA; padding-top: 20px; margin-top: 30px; font-size: 12px; color: #666;'>
-        Generated on $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+        Generated on $(date '+%Y-%m-%d %H:%M:%S')
     </div>
 </html>
 EOF
