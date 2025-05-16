@@ -468,9 +468,9 @@ validate_client_code() {
     echo "Starting client code validation..."
     local valid_codes=("LTS" "RCC" "KZIA" "BH" "WWS" "EBD")
     local input_code=""
-    local is_valid="false"
+    local is_valid=0
     
-    while [ "$is_valid" = false ]; do
+    while [ $is_valid -eq 0 ]; do
         echo "Enter client code (LTS, RCC, KZIA, BH, WWS, EBD):"
         read -r input_code
         
@@ -486,13 +486,13 @@ validate_client_code() {
         # Check if the code is in the valid codes array
         for code in "${valid_codes[@]}"; do
             if [ "$input_code" = "$code" ]; then
-                is_valid=true
+                is_valid=1
                 echo "Valid code found: $input_code"
                 break
             fi
         done
         
-        if [ "$is_valid" = false ]; then
+        if [ $is_valid -eq 0 ]; then
             echo "Invalid client code. Please try again."
         fi
     done
