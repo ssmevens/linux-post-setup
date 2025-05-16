@@ -111,6 +111,82 @@ validate_computer_type() {
 }
 
 ###############################################################################
+# IP Address Validation Function
+# Validates IP address format and ensures it's a valid private IP
+###############################################################################
+validate_ip() {
+    local ip=$1
+    local valid=0
+    
+    # Check if input is empty
+    if [ -z "$ip" ]; then
+        echo "IP address cannot be empty"
+        return 1
+    fi
+    
+    # Check IP format (x.x.x.x where x is 0-255)
+    if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+        # Split IP into octets
+        IFS='.' read -r -a octets <<< "$ip"
+        
+        # Check each octet is between 0-255
+        for octet in "${octets[@]}"; do
+            if [ "$octet" -gt 255 ] || [ "$octet" -lt 0 ]; then
+                echo "Invalid IP address: octet $octet is not between 0-255"
+                return 1
+            fi
+        done
+        
+        # Check if it's a private IP
+        local first_octet=${octets[0]}
+        local second_octet=${octets[1]}
+        
+        if [ "$first_octet" -eq 10 ]; then
+            valid=1
+        elif [ "$first_octet" -eq 172 ] && [ "$second_octet" -ge 16 ] && [ "$second_octet" -le 31 ]; then
+            valid=1
+        elif [ "$first_octet" -eq 192 ] && [ "$second_octet" -eq 168 ]; then
+            valid=1
+        else
+            echo "Invalid IP address: Must be a private IP address (10.x.x.x, 172.16-31.x.x, or 192.168.x.x)"
+            return 1
+        fi
+    else
+        echo "Invalid IP address format. Please use x.x.x.x format"
+        return 1
+    fi
+    
+    # Try to ping the IP to verify it's reachable
+    if ! ping -c 1 -W 1 "$ip" > /dev/null 2>&1; then
+        echo "Warning: IP address $ip is not responding to ping"
+        # Don't return failure here, just warn
+    fi
+    
+    return 0
+}
+
+###############################################################################
+# Printer IP Collection Function
+# Collects and validates printer IP address
+###############################################################################
+collect_printer_ip() {
+    local ip=""
+    local is_valid=0
+    
+    while [ $is_valid -eq 0 ]; do
+        echo "Enter printer IP address:"
+        read -r ip
+        
+        if validate_ip "$ip"; then
+            is_valid=1
+            echo "$ip"
+        else
+            echo "Please try again."
+        fi
+    done
+}
+
+###############################################################################
 # NoIP Configuration Function
 # Downloads, installs, and configures NoIP DUC client
 ###############################################################################
@@ -221,7 +297,7 @@ collect_lts_input() {
     # Printer Information
     # Linder uses HP printers, so we need IP and model
     echo "Enter HP printer IP address:"
-    read PRINTER_IP
+    PRINTER_IP=$(collect_printer_ip)
     echo "Enter HP printer model:"
     read PRINTER_MODEL
     
@@ -808,9 +884,11 @@ case $CLIENT_CODE in
         # Install and configure HP printer
         echo "Installing HP printer..."
         if sudo apt-get install -y hplip; then
-            # Add printer configuration here
             PRINTER_STATUS="success"
-            PRINTER_MESSAGE="Printer $PRINTER_MODEL configured at $PRINTER_IP"
+            PRINTER_MESSAGE="Printer software installed successfully"
+            
+            # TODO: Add actual printer configuration here
+            # We'll work on this next
         else
             PRINTER_STATUS="failed"
             PRINTER_MESSAGE="Failed to install printer software"
