@@ -386,7 +386,7 @@ generate_html_report() {
         </tr>
         <tr>
             <td>Hostname</td>
-            <td>$HOSTNAME</td>
+            <td>$NEW_HOSTNAME</td>
         </tr>
         <tr>
             <td>CPU</td>
@@ -496,15 +496,14 @@ validate_client_code() {
     CLIENT_CODE="$input_code"
 }
 
-###############################################################################
+###############################################################################################################################################################################################
 # Main Script Execution
 # This is where the actual setup process begins
-###############################################################################
+###############################################################################################################################################################################################
 echo "Welcome to the Post-Setup Script"
 
 # First collect all system information
 collect_system_info
-echo "did we make it here?"
 
 # Get and validate client code
 echo "About to validate client code..."
@@ -539,7 +538,7 @@ esac
 
 # Confirm all collected information before proceeding
 confirm_information
-echo "did we make it here?"
+
 # Execute the appropriate setup based on client code
 case $CLIENT_CODE in
     "LTS")
