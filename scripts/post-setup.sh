@@ -169,9 +169,12 @@ configure_noip() {
     if [ -f "/etc/default/noip-duc" ] && grep -q "USERNAME=$NOIP_USERNAME" "/etc/default/noip-duc"; then
         NOIP_STATUS="success"
         NOIP_MESSAGE="NoIP configured successfully for username: $NOIP_USERNAME, hostname: all.ddnskey.com"
+        # Get service status
+        NOIP_SERVICE_STATUS=$(systemctl status noip-duc | cat)
     else
         NOIP_STATUS="failed"
         NOIP_MESSAGE="Failed to configure NoIP for username: $NOIP_USERNAME"
+        NOIP_SERVICE_STATUS="Service status unavailable"
     fi
 }
 
@@ -579,7 +582,7 @@ generate_html_report() {
             echo "<tr>
                 <td>NoIP Configuration</td>
                 <td class=\"status-$NOIP_STATUS\">$NOIP_STATUS</td>
-                <td>$NOIP_MESSAGE</td>
+                <td>$NOIP_MESSAGE<br><br><pre style=\"background-color: #f8f9fa; padding: 10px; border-radius: 5px; font-size: 12px;\">$NOIP_SERVICE_STATUS</pre></td>
             </tr>"
         fi)
     </table>
