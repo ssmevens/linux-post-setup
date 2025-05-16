@@ -490,7 +490,7 @@ generate_html_report() {
     <div class="section-header">User Account Information</div>
     <div class="password-box">
         Username: $NEW_USER<br>
-        Password: $NEW_PASSWORD
+        Temporary Password: $NEW_PASSWORD
     </div>
     
     <div class="section-header">Setup Tasks</div>
