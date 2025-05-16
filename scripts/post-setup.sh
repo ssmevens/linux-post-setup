@@ -159,22 +159,31 @@ configure_noip() {
     if ! sudo systemctl start noip-duc; then
         NOIP_STATUS="failed"
         NOIP_MESSAGE="Failed to start NoIP DUC service"
+        NOIP_SERVICE_STATUS=$(systemctl status noip-duc | cat)
         return 1
     fi
     
     # Enable NoIP DUC service to start on boot
     sudo systemctl enable noip-duc
     
-    # Verify installation
+    # Wait a moment for the service to initialize
+    sleep 5
+    
+    # Check service status and verify it's running
+    NOIP_SERVICE_STATUS=$(systemctl status noip-duc | cat)
+    if ! systemctl is-active --quiet noip-duc; then
+        NOIP_STATUS="failed"
+        NOIP_MESSAGE="NoIP DUC service is not running properly"
+        return 1
+    fi
+    
+    # Verify installation and configuration
     if [ -f "/etc/default/noip-duc" ] && grep -q "USERNAME=$NOIP_USERNAME" "/etc/default/noip-duc"; then
         NOIP_STATUS="success"
         NOIP_MESSAGE="NoIP configured successfully for username: $NOIP_USERNAME, hostname: all.ddnskey.com"
-        # Get service status
-        NOIP_SERVICE_STATUS=$(systemctl status noip-duc | cat)
     else
         NOIP_STATUS="failed"
         NOIP_MESSAGE="Failed to configure NoIP for username: $NOIP_USERNAME"
-        NOIP_SERVICE_STATUS="Service status unavailable"
     fi
 }
 
@@ -582,7 +591,12 @@ generate_html_report() {
             echo "<tr>
                 <td>NoIP Configuration</td>
                 <td class=\"status-$NOIP_STATUS\">$NOIP_STATUS</td>
-                <td>$NOIP_MESSAGE<br><br><pre style=\"background-color: #f8f9fa; padding: 10px; border-radius: 5px; font-size: 12px;\">$NOIP_SERVICE_STATUS</pre></td>
+                <td>
+                    $NOIP_MESSAGE
+                    <br><br>
+                    <strong>Service Status:</strong>
+                    <pre style=\"background-color: #f8f9fa; padding: 10px; border-radius: 5px; font-size: 12px; white-space: pre-wrap;\">$NOIP_SERVICE_STATUS</pre>
+                </td>
             </tr>"
         fi)
     </table>
