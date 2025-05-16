@@ -112,7 +112,7 @@ validate_computer_type() {
 
 ###############################################################################
 # NoIP Configuration Function
-# Collects and configures NoIP information for LT and LC computers
+# Downloads, installs, and configures NoIP DUC client
 ###############################################################################
 configure_noip() {
     echo "=== NoIP Configuration ==="
@@ -122,10 +122,57 @@ configure_noip() {
     read -s NOIP_PASSWORD
     echo
     
+    # Download the latest NoIP DUC
+    echo "Downloading NoIP DUC..."
+    if ! wget --content-disposition https://www.noip.com/download/linux/latest; then
+        NOIP_STATUS="failed"
+        NOIP_MESSAGE="Failed to download NoIP DUC"
+        return 1
+    fi
+    
+    # Extract the downloaded file
+    echo "Extracting NoIP DUC..."
+    if ! tar xf noip-duc_*.tar.gz; then
+        NOIP_STATUS="failed"
+        NOIP_MESSAGE="Failed to extract NoIP DUC"
+        return 1
+    fi
+    
+    # Install the package
+    echo "Installing NoIP DUC..."
+    cd noip-duc_*/binaries
+    if ! sudo apt install -y ./noip-duc_*_amd64.deb; then
+        NOIP_STATUS="failed"
+        NOIP_MESSAGE="Failed to install NoIP DUC package"
+        cd - > /dev/null
+        return 1
+    fi
+    cd - > /dev/null
+    
     # Create NoIP configuration file
     echo "USERNAME=$NOIP_USERNAME" | sudo tee /etc/default/noip-duc
     echo "PASSWORD=$NOIP_PASSWORD" | sudo tee -a /etc/default/noip-duc
     echo "HOSTNAME=all.ddnskey.com" | sudo tee -a /etc/default/noip-duc
+    
+    # Start NoIP DUC service
+    echo "Starting NoIP DUC service..."
+    if ! sudo systemctl start noip-duc; then
+        NOIP_STATUS="failed"
+        NOIP_MESSAGE="Failed to start NoIP DUC service"
+        return 1
+    fi
+    
+    # Enable NoIP DUC service to start on boot
+    sudo systemctl enable noip-duc
+    
+    # Verify installation
+    if [ -f "/etc/default/noip-duc" ] && grep -q "USERNAME=$NOIP_USERNAME" "/etc/default/noip-duc"; then
+        NOIP_STATUS="success"
+        NOIP_MESSAGE="NoIP configured successfully for username: $NOIP_USERNAME, hostname: all.ddnskey.com"
+    else
+        NOIP_STATUS="failed"
+        NOIP_MESSAGE="Failed to configure NoIP for username: $NOIP_USERNAME"
+    fi
 }
 
 ###############################################################################
