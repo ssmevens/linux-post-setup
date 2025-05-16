@@ -13,14 +13,30 @@ SMTP2GO_PASSWORD="tIx3SXLn2tF4jYxa"        # SMTP2GO account password
 
 ###############################################################################
 # Password Generation Function
-# Creates a secure, memorable password for new user accounts
-# Uses OpenSSL for cryptographically secure random generation
-# Filters to ensure password contains only allowed characters
+# Creates a secure, memorable password using random words
+# Ensures password meets security requirements (capital, special char)
 ###############################################################################
 generate_password() {
-    # Generate 12 random bytes, encode as base64, then filter to allowed characters
-    # This ensures the password is both secure and compatible with most systems
-    openssl rand -base64 12 | tr -dc 'a-zA-Z0-9!@#$%^&*' | head -c 12
+    # Check if words file exists
+    if [ ! -f "/usr/share/dict/words" ]; then
+        echo "Error: /usr/share/dict/words not found. Installing wamerican package..."
+        sudo apt-get install -y wamerican
+    fi
+
+    # Get three random words (4-8 characters each)
+    local word1=$(grep -E '^[a-z]{4,8}$' /usr/share/dict/words | shuf -n 1)
+    local word2=$(grep -E '^[a-z]{4,8}$' /usr/share/dict/words | shuf -n 1)
+    local word3=$(grep -E '^[a-z]{4,8}$' /usr/share/dict/words | shuf -n 1)
+
+    # Capitalize first word
+    word1=$(echo "$word1" | sed 's/^./\U&/')
+
+    # Add a random special character
+    local special_chars="!@#$%^&*"
+    local special_char=$(echo "$special_chars" | fold -w1 | shuf | head -n1)
+
+    # Combine words with special character
+    echo "${word1}${special_char}${word2}${word3}"
 }
 
 ###############################################################################
@@ -422,6 +438,16 @@ generate_html_report() {
             color: #FFD700;
             font-weight: bold;
         }
+        .password-box {
+            background-color: #f8f9fa;
+            border: 2px solid #005DAA;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 18px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -455,6 +481,12 @@ generate_html_report() {
         </tr>
     </table>
     
+    <div class="section-header">User Account Information</div>
+    <div class="password-box">
+        Username: $NEW_USER<br>
+        Password: $NEW_PASSWORD
+    </div>
+    
     <div class="section-header">Setup Tasks</div>
     <table>
         <tr>
@@ -481,7 +513,7 @@ generate_html_report() {
             echo "<tr>
                 <td>NoIP Configuration</td>
                 <td class=\"status-success\">Success</td>
-                <td>NoIP hostname: $NOIP_HOSTNAME</td>
+                <td>NoIP hostname: all.ddnskey.com</td>
             </tr>"
         fi)
     </table>
