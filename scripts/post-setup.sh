@@ -421,7 +421,7 @@ generate_html_report() {
         <tr>
             <td>Hostname Configuration</td>
             <td class="status-success">Success</td>
-            <td>Hostname set to: $HOSTNAME</td>
+            <td>Hostname set to: $NEW_HOSTNAME</td>
         </tr>
         <tr>
             <td>Printer Setup</td>
