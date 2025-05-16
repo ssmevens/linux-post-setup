@@ -364,6 +364,18 @@ confirm_information() {
 }
 
 ###############################################################################
+# Status Tracking Variables
+###############################################################################
+USER_CREATION_STATUS="failed"
+USER_CREATION_MESSAGE=""
+HOSTNAME_STATUS="failed"
+HOSTNAME_MESSAGE=""
+PRINTER_STATUS="failed"
+PRINTER_MESSAGE=""
+NOIP_STATUS="failed"
+NOIP_MESSAGE=""
+
+###############################################################################
 # HTML Report Generation Function
 # Creates a professional HTML report of the setup process
 # Uses consistent styling with other automated reports
@@ -502,24 +514,24 @@ generate_html_report() {
         </tr>
         <tr>
             <td>User Creation</td>
-            <td class="status-$status">$status</td>
-            <td>$message</td>
+            <td class="status-$USER_CREATION_STATUS">$USER_CREATION_STATUS</td>
+            <td>$USER_CREATION_MESSAGE</td>
         </tr>
         <tr>
             <td>Hostname Configuration</td>
-            <td class="status-success">Success</td>
-            <td>Hostname set to: $NEW_HOSTNAME</td>
+            <td class="status-$HOSTNAME_STATUS">$HOSTNAME_STATUS</td>
+            <td>$HOSTNAME_MESSAGE</td>
         </tr>
         <tr>
             <td>Printer Setup</td>
-            <td class="status-success">Success</td>
-            <td>Printer $PRINTER_MODEL configured at $PRINTER_IP</td>
+            <td class="status-$PRINTER_STATUS">$PRINTER_STATUS</td>
+            <td>$PRINTER_MESSAGE</td>
         </tr>
         $(if [[ -n "$NOIP_USERNAME" ]]; then
             echo "<tr>
                 <td>NoIP Configuration</td>
-                <td class=\"status-success\">Success</td>
-                <td>NoIP hostname: all.ddnskey.com</td>
+                <td class=\"status-$NOIP_STATUS\">$NOIP_STATUS</td>
+                <td>$NOIP_MESSAGE</td>
             </tr>"
         fi)
     </table>
@@ -643,28 +655,56 @@ case $CLIENT_CODE in
         
         # Create new user with generated password
         echo "Creating new user..."
-        sudo useradd -m -s /bin/bash $NEW_USER
-        echo "$NEW_USER:$NEW_PASSWORD" | sudo chpasswd
+        if sudo useradd -m -s /bin/bash $NEW_USER && echo "$NEW_USER:$NEW_PASSWORD" | sudo chpasswd; then
+            USER_CREATION_STATUS="success"
+            USER_CREATION_MESSAGE="User $NEW_USER created successfully"
+        else
+            USER_CREATION_STATUS="failed"
+            USER_CREATION_MESSAGE="Failed to create user $NEW_USER"
+        fi
         
         # Set the new hostname
         echo "Setting hostname..."
-        sudo hostnamectl set-hostname "$NEW_HOSTNAME"
+        if sudo hostnamectl set-hostname "$NEW_HOSTNAME"; then
+            HOSTNAME_STATUS="success"
+            HOSTNAME_MESSAGE="Hostname set to: $NEW_HOSTNAME"
+        else
+            HOSTNAME_STATUS="failed"
+            HOSTNAME_MESSAGE="Failed to set hostname to $NEW_HOSTNAME"
+        fi
         
         # Special handling for LB computers
         if [ "$COMPUTER_TYPE" = "LB" ]; then
             echo "Removing rdp_manager..."
-            sudo apt-get remove -y rdp_manager
+            if sudo apt-get remove -y rdp_manager; then
+                echo "rdp_manager removed successfully"
+            else
+                echo "Failed to remove rdp_manager"
+            fi
         fi
         
         # Configure NoIP for LT and LC computers
         if [ "$COMPUTER_TYPE" = "LT" ] || [ "$COMPUTER_TYPE" = "LC" ]; then
             configure_noip
+            if [ -f "/etc/default/noip-duc" ] && grep -q "USERNAME=$NOIP_USERNAME" "/etc/default/noip-duc"; then
+                NOIP_STATUS="success"
+                NOIP_MESSAGE="NoIP configured successfully for hostname: all.ddnskey.com"
+            else
+                NOIP_STATUS="failed"
+                NOIP_MESSAGE="Failed to configure NoIP"
+            fi
         fi
         
         # Install and configure HP printer
         echo "Installing HP printer..."
-        sudo apt-get install -y hplip
-        # Add printer configuration here
+        if sudo apt-get install -y hplip; then
+            # Add printer configuration here
+            PRINTER_STATUS="success"
+            PRINTER_MESSAGE="Printer $PRINTER_MODEL configured at $PRINTER_IP"
+        else
+            PRINTER_STATUS="failed"
+            PRINTER_MESSAGE="Failed to install printer software"
+        fi
         
         # Add Chrome bookmarks if requested
         if [[ $ADD_BOOKMARKS == "y" ]]; then
@@ -673,7 +713,11 @@ case $CLIENT_CODE in
         fi
         
         # Generate and send the setup report
-        generate_html_report "success" "Setup completed successfully"
+        if [ "$USER_CREATION_STATUS" = "success" ] && [ "$HOSTNAME_STATUS" = "success" ] && [ "$PRINTER_STATUS" = "success" ]; then
+            generate_html_report "success" "Setup completed successfully"
+        else
+            generate_html_report "failed" "Some setup tasks failed. Please check the report for details."
+        fi
         ;;
         
     "RCC"|"KZIA"|"BH"|"WWS"|"EBD")
