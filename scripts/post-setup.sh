@@ -6,7 +6,7 @@
 # DO NOT MODIFY THESE VALUES WITHOUT UPDATING THE SMTP2GO CONFIGURATION
 ###############################################################################
 REPORT_EMAIL="NewLinuxInstall@its-ia.com"    # The email address that will send reports
-RECIPIENT_EMAIL="Ssaunders@its-ia.com"  # The email address that will receive reports
+RECIPIENT_EMAIL="techalerts@its-ia.com"  # The email address that will receive reports
 SMTP2GO_SERVER="mail.smtp2go.com"           # SMTP2GO's mail server address
 SMTP2GO_PORT="2525"                         # SMTP2GO's mail server port
 SMTP2GO_USERNAME="SRVLinux"                 # SMTP2GO account username
