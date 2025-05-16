@@ -6,7 +6,7 @@
 # DO NOT MODIFY THESE VALUES WITHOUT UPDATING THE SMTP2GO CONFIGURATION
 ###############################################################################
 REPORT_EMAIL="NewLinuxInstall@its-ia.com"    # The email address that will send reports
-RECIPIENT_EMAIL="techalerts@its-ia.com"  # The email address that will receive reports
+RECIPIENT_EMAIL="ssaunders@its-ia.com"  # The email address that will receive reports
 SMTP2GO_SERVER="mail.smtp2go.com"           # SMTP2GO's mail server address
 SMTP2GO_PORT="2525"                         # SMTP2GO's mail server port
 SMTP2GO_USERNAME="SRVLinux"                 # SMTP2GO account username
@@ -334,6 +334,7 @@ collect_ebd_input() {
 confirm_information() {
     echo -e "\n=== Collected Information ==="
     echo "Client Code: $CLIENT_CODE"
+    echo "Computer Type: $COMPUTER_TYPE"
     echo "Username: $NEW_USER"
     echo "Hostname: $NEW_HOSTNAME"
     echo "Printer IP: $PRINTER_IP"
@@ -461,6 +462,10 @@ generate_html_report() {
             <th>Value</th>
         </tr>
         <tr>
+            <td>Computer Type</td>
+            <td>$COMPUTER_TYPE</td>
+        </tr>
+        <tr>
             <td>Hostname</td>
             <td>$NEW_HOSTNAME</td>
         </tr>
@@ -533,7 +538,7 @@ EOF
 
     sendemail -f "$REPORT_EMAIL" \
               -t "$RECIPIENT_EMAIL" \
-              -u "System Setup Report - $CLIENT_CODE - $NEW_HOSTNAME" \
+              -u "System Setup Report - $CLIENT_CODE - $COMPUTER_TYPE - $NEW_HOSTNAME" \
               -s "$SMTP2GO_SERVER:$SMTP2GO_PORT" \
               -xu "$SMTP2GO_USERNAME" \
               -xp "$SMTP2GO_PASSWORD" \
