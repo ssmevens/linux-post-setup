@@ -401,35 +401,68 @@ collect_ebd_input() {
 # Prevents accidental setup with incorrect information
 ###############################################################################
 confirm_information() {
-    echo -e "\n=== Collected Information ==="
-    echo "Client Code: $CLIENT_CODE"
-    echo "Computer Type: $COMPUTER_TYPE"
-    echo "Username: $NEW_USER"
-    echo "Hostname: $NEW_HOSTNAME"
-    echo "Printer IP: $PRINTER_IP"
-    echo "Printer Model: $PRINTER_MODEL"
-    
-    # Only show NoIP information if it was collected (Linder systems)
-    if [[ -n "$NOIP_USERNAME" ]]; then
-        echo "NoIP Hostname: $NOIP_HOSTNAME"
-    fi
-    
-    # Only show bookmarks information if it was collected (Linder systems)
-    if [[ -n "$ADD_BOOKMARKS" ]]; then
-        echo "Add Bookmarks: $ADD_BOOKMARKS"
-    fi
-    
-    echo "Generated Password: $NEW_PASSWORD"
-    
-    # Ask for confirmation before proceeding
-    echo -e "\nIs this information correct? (y/n)"
-    read CONFIRM
-    
-    # Exit if user doesn't confirm
-    if [[ $CONFIRM != "y" ]]; then
-        echo "Setup cancelled. Please run the script again."
-        exit 1
-    fi
+    while true; do
+        echo -e "\n=== Collected Information ==="
+        echo "Client Code: $CLIENT_CODE"
+        echo "Computer Type: $COMPUTER_TYPE"
+        echo "Username: $NEW_USER"
+        echo "Hostname: $NEW_HOSTNAME"
+        echo "Printer IP: $PRINTER_IP"
+        echo "Printer Model: $PRINTER_MODEL"
+        
+        # Only show NoIP information if it was collected (Linder systems)
+        if [[ -n "$NOIP_USERNAME" ]]; then
+            echo "NoIP Username: $NOIP_USERNAME"
+        fi
+        
+        # Only show bookmarks information if it was collected (Linder systems)
+        if [[ -n "$ADD_BOOKMARKS" ]]; then
+            echo "Add Bookmarks: $ADD_BOOKMARKS"
+        fi
+        
+        echo "Generated Password: $NEW_PASSWORD"
+        
+        # Ask for confirmation
+        echo -e "\nIs this information correct? (y/n)"
+        read CONFIRM
+        
+        if [[ $CONFIRM == "y" ]]; then
+            return 0
+        else
+            echo "Information not confirmed. Starting over..."
+            # Clear all collected information
+            NEW_USER=""
+            NEW_HOSTNAME=""
+            PRINTER_IP=""
+            PRINTER_MODEL=""
+            NOIP_USERNAME=""
+            NOIP_PASSWORD=""
+            ADD_BOOKMARKS=""
+            NEW_PASSWORD=""
+            
+            # Re-collect information based on client code
+            case $CLIENT_CODE in
+                "LTS")
+                    collect_lts_input
+                    ;;
+                "RCC")
+                    collect_rcc_input
+                    ;;
+                "KZIA")
+                    collect_kzia_input
+                    ;;
+                "BH")
+                    collect_bh_input
+                    ;;
+                "WWS")
+                    collect_wws_input
+                    ;;
+                "EBD")
+                    collect_ebd_input
+                    ;;
+            esac
+        fi
+    done
 }
 
 ###############################################################################
